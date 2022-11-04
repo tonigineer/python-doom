@@ -12,10 +12,20 @@ from python_doom.maps import TILE_SIZE
 
 
 class Player:
+    shot_fired = False
+
     def __init__(self, game):
         self.game = game
         self.x, self.y = PLAYER.position
         self.heading = PLAYER.heading
+
+    def check_shooting(self, event):
+        if event.type == pg.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                if self.shot_fired: # or self.game.weapon.reloading:
+                    return
+                self.shot_fired = True
+                # self.game.weapon.reloading = True
 
     def _movement(self):
         v = PLAYER.movement_speed * self.game.dt
@@ -50,7 +60,7 @@ class Player:
 
     def _mouse_look(self):
         x, y = pg.mouse.get_pos()
-        if x < CONTROLS.mouse_border_left or y > CONTROLS.mouse_border_right:
+        if x < CONTROLS.mouse_border_left or x > CONTROLS.mouse_border_right:
             pg.mouse.set_pos([SCREEN.half_width, SCREEN.half_height])
 
         self.rel_move = pg.mouse.get_rel()[0]

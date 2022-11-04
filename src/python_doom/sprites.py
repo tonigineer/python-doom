@@ -125,6 +125,7 @@ class SpriteObject:
 
 class AnimatedObject(SpriteObject):
     images = []
+    animation_counter = 0
 
     def __init__(self, game, path, pos, animation_time, scale, height_shift):
         super().__init__(game, path, pos, scale, height_shift)
@@ -142,15 +143,18 @@ class AnimatedObject(SpriteObject):
         self._animate()
         return super().update()
 
-    def _animate(self):
+    def _animate(self) -> bool:
         if self.animation_trigger:
             self.images.rotate(-1)
             self.image = self.images[0]
             self.animation_trigger = False
+            self.animation_counter = \
+                (self.animation_counter + 1) % len(self.images)
+            return self.animation_counter == 0
 
     def _check_animation_time(self):
         now = pg.time.get_ticks()
-        if now - self.prev_time > self.animation_time:
+        if (now - self.prev_time) > self.animation_time:
             self.prev_time = now
             self.animation_trigger = True
 
@@ -168,7 +172,7 @@ class AnimatedObject(SpriteObject):
     @staticmethod
     def grab_images(path):
         images = deque()
-        for file in os.listdir(path):
+        for file in sorted(os.listdir(path)):
             image = pg.image.load(os.path.join(path, file)).convert_alpha()
             images.append(image)
         return images

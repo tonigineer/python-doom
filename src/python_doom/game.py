@@ -1,6 +1,4 @@
-from re import I
 import sys
-from webbrowser import Grail
 
 import pygame as pg
 
@@ -58,6 +56,7 @@ class Game:
         self.renderer.draw()
         self.map.draw()
         self.player.draw()
+        self.weapon.draw()
 
     def check_events(self):
         for event in pg.event.get():
@@ -65,6 +64,7 @@ class Game:
                 self._quit()
             if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
                 self._quit()
+            self.player.check_shooting(event)
 
     @staticmethod
     def _quit():
