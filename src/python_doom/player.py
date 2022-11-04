@@ -1,10 +1,13 @@
 import math
+from re import A
 
 import pygame as pg
+import numpy as np
 
 from python_doom.settings import PlayerConfig as PLAYER
 from python_doom.settings import ScreenConfig as SCREEN
 from python_doom.settings import GraphicConfig as GRAPHICS
+from python_doom.settings import ControlsConfig as CONTROLS
 from python_doom.maps import TILE_SIZE
 
 
@@ -14,8 +17,8 @@ class Player:
         self.x, self.y = PLAYER.position
         self.heading = PLAYER.heading
 
-    def movement(self):
-        v = PLAYER.movement_speed * self.game.delta_t
+    def _movement(self):
+        v = PLAYER.movement_speed * self.game.dt
         v_sin = math.sin(self.heading) * v
         v_cos = math.cos(self.heading) * v
 
@@ -38,20 +41,38 @@ class Player:
             dy += v_cos
         # Turning
         if keys[pg.K_LEFT]:
-            self.heading -= PLAYER.turn_rate * self.game.delta_t
+            self.heading -= PLAYER.turn_rate * self.game.dt
         if keys[pg.K_RIGHT]:
-            self.heading += PLAYER.turn_rate * self.game.delta_t
+            self.heading += PLAYER.turn_rate * self.game.dt
 
-        self.check_collisions(dx, dy)
+        self._check_collisions(dx, dy)
         self.heading %= math.tau
 
-    def can_move(self, x, y):
-        return (int(x), int(y)) not in self.game.map.obstructed_tiles
+    def _mouse_look(self):
+        x, y = pg.mouse.get_pos()
+        if x < CONTROLS.mouse_border_left or y > CONTROLS.mouse_border_right:
+            pg.mouse.set_pos([SCREEN.half_width, SCREEN.half_height])
 
-    def check_collisions(self, dx, dy):
-        if self.can_move(self.x + dx, self.y):
+        self.rel_move = pg.mouse.get_rel()[0]
+        self.rel_move = np.clip(
+            self.rel_move, -CONTROLS.mouse_max_rel_move,
+            CONTROLS.mouse_max_rel_move
+        )
+
+        self.heading += self.rel_move * CONTROLS.mouse_sensitivity * self.game.dt
+
+    def _check_for_walls(self, x, y):
+        for xs, ys in [(1, 1), (1, -1), (-1, -1), (-1, 1)]:
+            dx = xs * PLAYER.size
+            dy = ys * PLAYER.size
+            if (int(x+dx), int(y+dy)) in self.game.map.obstructed_tiles:
+                return False
+        return True
+
+    def _check_collisions(self, dx, dy):
+        if self._check_for_walls(self.x + dx, self.y):
             self.x += dx
-        if self.can_move(self.x, self.y + dy):
+        if self._check_for_walls(self.x, self.y + dy):
             self.y += dy
 
     def draw(self):
@@ -69,7 +90,8 @@ class Player:
             )
 
     def update(self):
-        self.movement()
+        self._movement()
+        self._mouse_look()
 
     @property
     def position(self):
