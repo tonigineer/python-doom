@@ -1,12 +1,11 @@
 import math
-from re import A
 
 import pygame as pg
 import numpy as np
 
 from python_doom.settings import PlayerConfig as PLAYER
 from python_doom.settings import ScreenConfig as SCREEN
-from python_doom.settings import GraphicConfig as GRAPHICS
+from python_doom.settings import GraphicsConfig as GRAPHICS
 from python_doom.settings import ControlsConfig as CONTROLS
 from python_doom.maps import TILE_SIZE
 
@@ -22,10 +21,10 @@ class Player:
     def check_shooting(self, event):
         if event.type == pg.MOUSEBUTTONDOWN:
             if event.button == 1:
-                if self.shot_fired: # or self.game.weapon.reloading:
+                if self.shot_fired or self.game.weapon.reloading:
                     return
+                self.game.sounds.shotgun.play()
                 self.shot_fired = True
-                # self.game.weapon.reloading = True
 
     def _movement(self):
         v = PLAYER.movement_speed * self.game.dt

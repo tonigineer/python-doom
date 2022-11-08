@@ -2,31 +2,49 @@ import pygame as pg
 from collections import deque
 
 from python_doom.sprites import AnimatedObject
+from python_doom.rendering import RenderedObject
 from python_doom.settings import ScreenConfig as SCREEN
 
 
-SHOTGUN = {"path": 'resources/sprites/weapon/shotgun', "pos": (0, 0), "scale": 0.4, "height_shift": 500, "animation_time": 90}
+SHOTGUN = {
+    "path": 'resources/sprites/weapon/shotgun',
+    "pos": (0, 0),
+    "animation_time": 120,
+    "scale": 0.5,
+    "height_shift": 0
+}
 
 
 class Weapon(AnimatedObject):
-    object_to_render = []
+    objects_to_render = []
 
     reloading = False
-    frame_counter = 0
     damage = 50
 
     def __init__(self, game):
         self.game = game
         self.player = game.player
-        super().__init__(game, **SHOTGUN)
 
-        # Re-grabbing images should be caught within super().__inti__() of animatedObject
-        self.images = super().grab_images(SHOTGUN["path"])
+        super().__init__(game, **SHOTGUN)
+        self.num_images = len(self.images)
+
+        # Additional scaling/shifting to super class
         self.images = self._scale_weapon(self.images, 0.5)
         self.position = self._weapon_position(self.images[0])
         self.image = self.images[0]
 
-        self.num_images = len(self.images)
+    def update(self):
+        if self.player.shot_fired:
+            self.game.player.shot_fired = False
+            self.reloading = True
+
+        # Because of `depth` = 0, we don't call super().update()
+        # -> manual creation of rendered object
+        self._check_animation_time()
+        self._animate_shooting()
+        self.objects_to_render = [
+            RenderedObject(0, self.image, self.position)
+        ]
 
     def _animate_shooting(self):
         if self.reloading:
@@ -50,15 +68,3 @@ class Weapon(AnimatedObject):
             SCREEN.half_width - image.get_width() // 2,
             SCREEN.height - image.get_height()
         )
-
-    def update(self):
-        print(self.player.shot_fired)
-        print(self.reloading)
-        if self.player.shot_fired:
-            self.game.player.shot_fired = False
-            self.reloading = True
-        self._check_animation_time()
-        self._animate_shooting()
-
-    def draw(self):
-        self.game.screen.blit(self.image, self.position)

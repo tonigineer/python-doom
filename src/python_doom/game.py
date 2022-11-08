@@ -3,11 +3,13 @@ import sys
 import pygame as pg
 
 from python_doom.settings import ScreenConfig as SCREEN
+from python_doom.settings import GraphicsConfig as GRAPHICS
 from python_doom.maps import Maps
+from python_doom.npc import NpcHandler
 from python_doom.player import Player
 from python_doom.ray_casting import RayCasting
 from python_doom.rendering import Renderer
-from python_doom.sprites import Sprites
+from python_doom.sprites import SpritesHandler
 from python_doom.sounds import Sounds
 from python_doom.weapons import Weapon
 
@@ -25,7 +27,8 @@ class Game:
         self.clock = pg.time.Clock()
         self._new_game()
 
-        self.sprites = Sprites(self)
+        self.sprites_handler = SpritesHandler(self)
+        self.npc_handler = NpcHandler(self)
         self.renderer = Renderer(self)
         self.ray_caster = RayCasting(self)
 
@@ -39,7 +42,8 @@ class Game:
     def update(self):
         self.player.update()
         self.ray_caster.update()
-        self.sprites.update()
+        self.sprites_handler.update()
+        self.npc_handler.update()
         self.weapon.update()
         pg.display.flip()
 
@@ -52,11 +56,11 @@ class Game:
         pg.display.set_caption(caption)
 
     def draw(self):
-        # self.screen.fill((0, 0, 0))
+        if GRAPHICS.mode_2d:
+            self.screen.fill((0, 0, 0))
         self.renderer.draw()
         self.map.draw()
         self.player.draw()
-        self.weapon.draw()
 
     def check_events(self):
         for event in pg.event.get():

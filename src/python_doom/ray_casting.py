@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from python_doom.maps import TILE_SIZE
 from python_doom.settings import ScreenConfig as SCREEN
-from python_doom.settings import GraphicConfig as GRAPHICS
+from python_doom.settings import GraphicsConfig as GRAPHICS
 
 from python_doom.rendering import RenderedObject
 

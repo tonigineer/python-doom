@@ -23,10 +23,11 @@ class PlayerConfig:
 
 
 @dataclass
-class GraphicConfig:
-    mode_2d: bool = False
+class GraphicsConfig:
+    mode_2d: bool = True
     # 2D
     debug_rays: bool = False
+    debug_line_of_sight = True
     # 3D
     debug_render_textures: bool = True
 

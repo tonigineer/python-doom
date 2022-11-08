@@ -6,15 +6,16 @@ import numpy as np
 from collections import deque
 from pathlib import Path
 
-from python_doom.settings import GraphicConfig, ScreenConfig as SCREEN
-from python_doom.settings import GraphicConfig as GRAPHICS
+from python_doom.settings import ScreenConfig as SCREEN
+from python_doom.settings import GraphicsConfig as GRAPHICS
+from python_doom.maps import TILE_SIZE
 from python_doom.settings import PlayerConfig as PLAYER
 
 from python_doom.rendering import RenderedObject
 
 
 STATICS = [
-    {"path": 'resources/sprites/static_sprites/candlebra.png', "pos": (12, 6), "scale": 0.85, "height_shift": 0.5}
+    # {"path": 'resources/sprites/static_sprites/candlebra.png', "pos": (12, 6), "scale": 0.85, "height_shift": 0.5}
 ]
 
 ANIMATIONS = [
@@ -41,7 +42,7 @@ ANIMATIONS = [
 ]
 
 
-class Sprites:
+class SpritesHandler:
     sprites = []
     objects_to_render = []
 
@@ -93,6 +94,14 @@ class SpriteObject:
         position = self.x_screen - half_width, \
             SCREEN.half_height - height // 2 + height * self.height_shift
 
+        if GRAPHICS.mode_2d:
+            image = pg.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
+            return RenderedObject(self.norm_dist, image, (
+                    self.x * TILE_SIZE - TILE_SIZE // 2,
+                    self.y * TILE_SIZE - TILE_SIZE // 2
+                )
+            )
+
         return RenderedObject(self.norm_dist, image, position)
 
     def _calculate_sprite(self):
@@ -107,7 +116,7 @@ class SpriteObject:
 
         delta_rays = delta / GRAPHICS.delta_angle
         self.x_screen = \
-            (GRAPHICS.half_number_rays + delta_rays) * GraphicConfig.scaling
+            (GRAPHICS.half_number_rays + delta_rays) * GRAPHICS.scaling
 
         self.dist = np.hypot(dx, dy)
         self.norm_dist = self.dist * np.cos(delta)
@@ -119,7 +128,18 @@ class SpriteObject:
         if -self.IMAGE_HALF_WIDTH < self.x_screen < (SCREEN.width + self.IMAGE_HALF_WIDTH):
             return self._project_spite()
 
+    def _draw_2d_pos(self):
+        self.game.screen
+        pg.draw.circle(
+            self.game.screen, (200, 200, 0),
+            (int(self.x * TILE_SIZE), int(self.y * TILE_SIZE)),
+            15, 2
+        )
+
     def update(self):
+        # if GRAPHICS.mode_2d:
+        #     self._draw_2d_pos()
+        #     return None
         return self._calculate_sprite()
 
 
@@ -148,6 +168,7 @@ class AnimatedObject(SpriteObject):
             self.images.rotate(-1)
             self.image = self.images[0]
             self.animation_trigger = False
+            # Return true, when animation cycle was completed
             self.animation_counter = \
                 (self.animation_counter + 1) % len(self.images)
             return self.animation_counter == 0
@@ -170,9 +191,11 @@ class AnimatedObject(SpriteObject):
         self.image = self.images[0]
 
     @staticmethod
-    def grab_images(path):
+    def grab_images(path: str) -> list:
         images = deque()
-        for file in sorted(os.listdir(path)):
+        files = [f for f in os.listdir(path)
+                 if os.path.isfile(os.path.join(path, f))]
+        for file in sorted(files):
             image = pg.image.load(os.path.join(path, file)).convert_alpha()
             images.append(image)
         return images

@@ -1,6 +1,6 @@
 import pygame as pg
 
-from python_doom.settings import GraphicConfig as GRAPHICS
+from python_doom.settings import GraphicsConfig as GRAPHICS
 
 COLOR_RECT_2D = (100, 100, 100)
 TILE_SIZE = 100  # pixel

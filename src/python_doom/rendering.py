@@ -1,7 +1,8 @@
 import pygame as pg
 from dataclasses import dataclass
 
-from python_doom.settings import GraphicConfig as GRAPHICS
+from python_doom.settings import GraphicsConfig as GRAPHICS
+from python_doom.maps import TILE_SIZE
 from python_doom.settings import ScreenConfig as SCREEN
 
 
@@ -26,8 +27,9 @@ class Renderer:
         self.sky_texture = self._load_sky_texture()
 
     def draw(self):
-        self._draw_sky()
-        self._draw_floor()
+        if not GRAPHICS.mode_2d:
+            self._draw_sky()
+            self._draw_floor()
         self._render_objects()
 
     def _draw_sky(self):
@@ -51,8 +53,9 @@ class Renderer:
     def _render_objects(self):
         all_objects = \
             self.game.ray_caster.objects_to_render + \
-            self.game.sprites.objects_to_render + \
-            self.game.weapon.object_to_render
+            self.game.sprites_handler.objects_to_render + \
+            self.game.weapon.objects_to_render + \
+            self.game.npc_handler.objects_to_render
 
         all_objects = sorted(
             all_objects, key=lambda obj: obj.depth, reverse=True
