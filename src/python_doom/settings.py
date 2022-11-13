@@ -4,6 +4,15 @@ from dataclasses import dataclass
 
 
 @dataclass
+class Difficulty:
+    npc_ratio = [.7, .2, .1]  # soldier, caco, cyber
+    num_nps = 20
+    min_npc_spawn_dist = 10  # manhattan distance (1-norm)
+
+    difficulty = None
+
+
+@dataclass
 class ScreenConfig:
     width: int = 1600
     height: int = 900
@@ -15,7 +24,7 @@ class ScreenConfig:
 
 @dataclass
 class PlayerConfig:
-    position: tuple = 14, 7
+    position: tuple = 14, 2
     heading: float = 3.825
     movement_speed: float = 0.004
     turn_rate: float = 0.002
@@ -24,7 +33,7 @@ class PlayerConfig:
 
 @dataclass
 class GraphicsConfig:
-    mode_2d: bool = True
+    mode_2d: bool = False
     # 2D
     debug_rays: bool = False
     debug_line_of_sight = True
@@ -46,10 +55,14 @@ class GraphicsConfig:
 
     floor_color = (30, 30, 30)
 
+    player_health_size = 90
+
 
 @dataclass
 class ControlsConfig:
     mouse_sensitivity: float = 0.0003
     mouse_max_rel_move: int = 40
-    mouse_border_left: int = 100
+    mouse_border_left: int = 50
     mouse_border_right: int = ScreenConfig.width - mouse_border_left
+    mouse_border_bottom: int = 50
+    mouse_border_top: int = ScreenConfig.height - mouse_border_bottom

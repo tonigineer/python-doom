@@ -19,6 +19,10 @@ class Renderer:
 
     rendered_object = []
 
+    player_took_damage = False
+    player_damage_time = None
+    PLAYER_DAMAGE_ANIMATION_TIME = 200
+
     def __init__(self, game):
         self.game = game
         self.screen = game.screen
@@ -26,11 +30,40 @@ class Renderer:
         self.wall_textures = self._load_wall_textures()
         self.sky_texture = self._load_sky_texture()
 
+        self.digits = self._load_digits()
+        self.blood_screen = self._load_blood_screen()
+
     def draw(self):
         if not GRAPHICS.mode_2d:
             self._draw_sky()
             self._draw_floor()
         self._render_objects()
+
+    def render_win(self):
+        self.screen.blit(self._load_win_screen(), (0, 0))
+
+    def render_loss(self):
+        self.screen.blit(self._load_lose_screen(), (0, 0))
+
+    def render_player_health(self):
+        for idx, char in enumerate(str(self.game.player.health)):
+            self.screen.blit(
+                self.digits[int(char)],
+                (idx * GRAPHICS.player_health_size, 0)
+            )
+
+    def render_player_damage(self):
+        if self.player_took_damage:
+            now = pg.time.get_ticks()
+            if not self.player_damage_time:
+                self.player_damage_time = now
+
+            self.screen.blit(self.blood_screen, (0, 0))
+
+            if (now - self.player_damage_time) > \
+               self.PLAYER_DAMAGE_ANIMATION_TIME:
+                self.player_took_damage = False
+                self.player_damage_time = None
 
     def _draw_sky(self):
         self.sky_offset = \
@@ -64,6 +97,9 @@ class Renderer:
         for obj in all_objects:
             self.screen.blit(obj.image, obj.position)
 
+        self.render_player_health()
+        self.render_player_damage()
+
     @staticmethod
     def _grab_texture(path, res=(GRAPHICS.texture_size, GRAPHICS.texture_size)):
         texture = pg.image.load(path).convert_alpha()
@@ -82,3 +118,34 @@ class Renderer:
             f'resources/textures/sky.png',
             (SCREEN.width, SCREEN.half_height)
         )
+
+    @classmethod
+    def _load_blood_screen(cls):
+        return cls._grab_texture(
+            f'resources/textures/blood_screen.png',
+            (SCREEN.width, SCREEN.height)
+        )
+
+    @classmethod
+    def _load_lose_screen(cls):
+        return cls._grab_texture(
+            f'resources/textures/game_over.png',
+            (SCREEN.width, SCREEN.height)
+        )
+
+    @classmethod
+    def _load_win_screen(cls):
+        return cls._grab_texture(
+            f'resources/textures/win.png',
+            (SCREEN.width, SCREEN.height)
+        )
+
+    @classmethod
+    def _load_digits(cls):
+        return {
+            _: cls._grab_texture(
+                f'resources/textures/digits/{_}.png',
+                (GRAPHICS.player_health_size, GRAPHICS.player_health_size)
+            )
+            for _ in range(0, 10)
+        }

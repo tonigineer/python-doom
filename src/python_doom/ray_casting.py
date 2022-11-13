@@ -75,7 +75,7 @@ class RayCasting:
             a_sin = math.sin(ray_angle)
             a_cos = math.cos(ray_angle)
 
-            depth, texture_id, offset = self._cast_ray(a_sin, a_cos)
+            depth, texture_id, offset = self.cast_ray(a_sin, a_cos)
 
             if GRAPHICS.mode_2d and GRAPHICS.debug_rays:
                 self._draw_ray(
@@ -101,7 +101,7 @@ class RayCasting:
 
             ray_angle += GRAPHICS.delta_angle
 
-    def _cast_ray(self, a_sin: float, a_cos: float):
+    def cast_ray(self, a_sin: float, a_cos: float):
         """Cast a ray and determine information of intercepted object.
 
         There calculation is separated into vertical and horizontal

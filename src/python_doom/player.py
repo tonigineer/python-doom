@@ -12,6 +12,7 @@ from python_doom.maps import TILE_SIZE
 
 class Player:
     shot_fired = False
+    health = 100
 
     def __init__(self, game):
         self.game = game
@@ -59,7 +60,10 @@ class Player:
 
     def _mouse_look(self):
         x, y = pg.mouse.get_pos()
-        if x < CONTROLS.mouse_border_left or x > CONTROLS.mouse_border_right:
+        if not (
+            CONTROLS.mouse_border_left <= x <= CONTROLS.mouse_border_right and
+            CONTROLS.mouse_border_bottom <= y <= CONTROLS.mouse_border_top
+        ):
             pg.mouse.set_pos([SCREEN.half_width, SCREEN.half_height])
 
         self.rel_move = pg.mouse.get_rel()[0]
@@ -84,23 +88,33 @@ class Player:
         if self._check_for_walls(self.x, self.y + dy):
             self.y += dy
 
-    def draw(self):
+    def _draw_2d(self):
+        COLOR = (14, 185, 162)
+        LINE_WIDTH = 2
+        RADIUS = 15
+
         if GRAPHICS.mode_2d:
             pg.draw.line(
-                self.game.screen, (100, 0, 150),
+                self.game.screen, COLOR,
                 (self.x * TILE_SIZE, self.y * TILE_SIZE),
-                (self.x * TILE_SIZE + SCREEN.width * math.cos(self.heading),
-                 self.y * TILE_SIZE + SCREEN.width * math.sin(self.heading)),
-                2)
+                (self.x * TILE_SIZE + GRAPHICS.max_depth * TILE_SIZE * math.cos(self.heading),
+                 self.y * TILE_SIZE + GRAPHICS.max_depth * TILE_SIZE * math.sin(self.heading)),
+                LINE_WIDTH)
             pg.draw.circle(
-                self.game.screen, (200, 200, 0),
+                self.game.screen, COLOR,
                 (int(self.x * TILE_SIZE), int(self.y * TILE_SIZE)),
-                15
+                RADIUS
             )
 
     def update(self):
         self._movement()
         self._mouse_look()
+        self._draw_2d()
+
+    def take_damage(self, attack_damage):
+        self.health -= min(attack_damage, self.health)
+        self.game.renderer.player_took_damage = True
+        self.game.sounds.pain.play()
 
     @property
     def position(self):

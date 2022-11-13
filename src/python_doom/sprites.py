@@ -62,9 +62,19 @@ class SpritesHandler:
         self.objects_to_render = []
 
         for sprite in self.sprites:
+            if GRAPHICS.mode_2d:
+                self._draw_2d(sprite.x, sprite.y)
+                continue
             obj = sprite.update()
             if obj:
                 self.objects_to_render.append(obj)
+
+    def _draw_2d(self, x, y, r=100):
+        pg.draw.circle(
+            self.game.screen, (200, 200, 0),
+            (int(x * r), int(y * r)),
+            15
+        )
 
 
 class SpriteObject:
@@ -146,6 +156,7 @@ class SpriteObject:
 class AnimatedObject(SpriteObject):
     images = []
     animation_counter = 0
+    animation_finished = True
 
     def __init__(self, game, path, pos, animation_time, scale, height_shift):
         super().__init__(game, path, pos, scale, height_shift)
@@ -165,16 +176,19 @@ class AnimatedObject(SpriteObject):
 
     def _animate(self) -> bool:
         if self.animation_trigger:
-            self.images.rotate(-1)
+            if len(self.images) > 1:
+                self.images.rotate(-1)
             self.image = self.images[0]
             self.animation_trigger = False
-            # Return true, when animation cycle was completed
+
             self.animation_counter = \
                 (self.animation_counter + 1) % len(self.images)
-            return self.animation_counter == 0
+            self.animation_finished = self.animation_counter == 0
+            return self.animation_finished
 
     def _check_animation_time(self):
         now = pg.time.get_ticks()
+        self.dt_ani = (now - self.prev_time)
         if (now - self.prev_time) > self.animation_time:
             self.prev_time = now
             self.animation_trigger = True

@@ -7,6 +7,7 @@ from python_doom.settings import GraphicsConfig as GRAPHICS
 from python_doom.maps import Maps
 from python_doom.npc import NpcHandler
 from python_doom.player import Player
+from python_doom.path_finding import PathFinding
 from python_doom.ray_casting import RayCasting
 from python_doom.rendering import Renderer
 from python_doom.sprites import SpritesHandler
@@ -34,17 +35,30 @@ class Game:
 
     def _new_game(self):
         self.map = Maps(self)
+        self.path_finding = PathFinding(self)
         self.player = Player(self)
         self.weapon = Weapon(self)
         self.sounds = Sounds(self)
         self.sounds.theme.play(-1)
 
+    def _check_game_logic(self) -> bool:
+        if self.player.health <= 0:
+            self.renderer.render_loss()
+            return False
+
+        if len([npc for npc in self.npc_handler.all_npc if npc.alive]) <= 0:
+            self.renderer.render_win()
+            return False
+
+        return True
+
     def update(self):
-        self.player.update()
-        self.ray_caster.update()
-        self.sprites_handler.update()
-        self.npc_handler.update()
-        self.weapon.update()
+        if self._check_game_logic():
+            self.player.update()
+            self.ray_caster.update()
+            self.sprites_handler.update()
+            self.npc_handler.update()
+            self.weapon.update()
         pg.display.flip()
 
         self.dt = self.clock.tick(SCREEN.fps if SCREEN.lock_fps else 1e1)
@@ -60,7 +74,6 @@ class Game:
             self.screen.fill((0, 0, 0))
         self.renderer.draw()
         self.map.draw()
-        self.player.draw()
 
     def check_events(self):
         for event in pg.event.get():

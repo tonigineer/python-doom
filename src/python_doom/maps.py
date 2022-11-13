@@ -47,6 +47,7 @@ class Maps:
         self.game = game
         self.tiles = tile_map
         self.obstructed_tiles = {}
+        self.free_tiles = []
         self.parse_mini_map()
 
     def parse_mini_map(self):
@@ -54,9 +55,12 @@ class Maps:
             for x, value in enumerate(row):
                 if value:
                     self.obstructed_tiles[(x, y)] = value
+                else:
+                    self.free_tiles.append((x, y))
 
     def draw(self):
         if GRAPHICS.mode_2d:
+            y = self.game.player.position[1]
             [pg.draw.rect(
                 self.game.screen,
                 COLOR_RECT_2D,

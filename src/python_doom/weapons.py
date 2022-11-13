@@ -4,6 +4,7 @@ from collections import deque
 from python_doom.sprites import AnimatedObject
 from python_doom.rendering import RenderedObject
 from python_doom.settings import ScreenConfig as SCREEN
+from python_doom.settings import GraphicsConfig as GRAPHICS
 
 
 SHOTGUN = {
@@ -34,6 +35,7 @@ class Weapon(AnimatedObject):
         self.image = self.images[0]
 
     def update(self):
+
         if self.player.shot_fired:
             self.game.player.shot_fired = False
             self.reloading = True
@@ -42,6 +44,10 @@ class Weapon(AnimatedObject):
         # -> manual creation of rendered object
         self._check_animation_time()
         self._animate_shooting()
+
+        if GRAPHICS.mode_2d:
+            return
+
         self.objects_to_render = [
             RenderedObject(0, self.image, self.position)
         ]
